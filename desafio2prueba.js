@@ -4,10 +4,10 @@ const fs = require ('fs');
 class ProductManager {
     constructor(path) {
         this.path = path;
-        fs.existsSync(path) ? this.products = JSON.parse(fs.readFileSync(path)) : this.products = [];
+        if (fs.existsSync(path) == false) {
+            fs.writeFileSync(path, JSON.stringify([]));
+        };
     }
-
-
     static getNewId(lastProduct) {
         if (!lastProduct) {
             return 1;
@@ -15,8 +15,14 @@ class ProductManager {
             return lastProduct.id + 1;
         }
     }
+    async getProducts() {
+        let products =  await fs.promises.readFile(this.path, 'utf-8');
+        return JSON.parse(products);
+    }
     addProduct(title, description, price, thumbnail, code, stock) {
-        let codes = this.products.map (p => p.code)
+        let products = this.getProducts();
+        let codes = products.map(p => p.code)
+
         if (codes.includes(code)) {
             console.log('Este producto ya existe');
             return;
@@ -25,15 +31,12 @@ class ProductManager {
             console.error('Complete todos los campos');
             return
         }
-        let lastProduct = this.products[this.products.length - 1]
+        let lastProduct = products[products.length - 1]
         let newId = ProductManager.getNewId(lastProduct);
-        this.products.push({ title: title, description: description, price: price, thumbnail: thumbnail, code: code, stock: stock, id:newId });
-        fs.writeFileSync(this.path, JSON.stringify(this.products));
+        products.push({ title: title, description: description, price: price, thumbnail: thumbnail, code: code, stock: stock, id:newId });
+        fs.writeFileSync(this.path, JSON.stringify(products));
     }
-    async getProducts() {
-        let products =  await fs.promises.readFile(this.path, 'utf-8');
-        return JSON.parse(products);
-    }
+
     async getProductById(id) {
         let products =  await this.getProducts();
         let product = products.find(p => p.id === id);
@@ -46,7 +49,7 @@ class ProductManager {
         let products = await this.getProducts();
         let productIndex = products.findIndex(p => p.id == id);
         products[productIndex] = {...products[productIndex], ...updatedProduct};
-        await fs.promises.writeFile(this.path, JSON.stringify(this.products));
+        await fs.promises.writeFile(this.path, JSON.stringify(products));
     }  
 }
 //testing 
