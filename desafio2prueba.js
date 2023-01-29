@@ -1,9 +1,19 @@
+const fs = require ('fs').promises;
+//const ruta = ;
 
 
+
+//createFile();
 class ProductManager {
     constructor() {
-        this.products = []
+        this.path = path
     }
+
+ createFile = async() =>{ 
+        await fs.writeFile(this.path, '[]')
+     let contenido = await fs.readFile(this.path, 'utf-8');
+     console.log(contenido);
+ }
     static getNewId(lastProduct) {
         if (!lastProduct) {
             return 1;
@@ -37,7 +47,7 @@ class ProductManager {
     }
     
 }
-
+/*
 //testing 
 
 const productManager = new ProductManager();
@@ -58,3 +68,4 @@ console.log(productManager.getProductById(5));
 productManager.getProducts();
 console.log(products);
 
+*/
