@@ -1,19 +1,13 @@
-const fs = require ('fs').promises;
-//const ruta = ;
+const fs = require ('fs');
 
 
-
-//createFile();
 class ProductManager {
-    constructor() {
-        this.path = path
+    constructor(path) {
+        this.path = path;
+        fs.existsSync(path) ? this.products = JSON.parse(fs.readFileSync(path)) : this.products = [];
     }
 
- createFile = async() =>{ 
-        await fs.writeFile(this.path, '[]')
-     let contenido = await fs.readFile(this.path, 'utf-8');
-     console.log(contenido);
- }
+
     static getNewId(lastProduct) {
         if (!lastProduct) {
             return 1;
@@ -34,37 +28,57 @@ class ProductManager {
         let lastProduct = this.products[this.products.length - 1]
         let newId = ProductManager.getNewId(lastProduct);
         this.products.push({ title: title, description: description, price: price, thumbnail: thumbnail, code: code, stock: stock, id:newId });
+        fs.writeFileSync(this.path, JSON.stringify(this.products));
     }
-    getProducts() {
-        return this.products;
+    async getProducts() {
+        let products =  await fs.promises.readFile(this.path, 'utf-8');
+        return JSON.parse(products);
     }
-    getProductById(id) {
-        let product = this.products.find(p => p.id === id);
+    async getProductById(id) {
+        let products =  await this.getProducts();
+        let product = products.find(p => p.id === id);
         if (product) {
             return product;
         }
-        console.error('Not found');
-    }
-    
+        console.error('No existe el producto');
+    } 
+    async updateProduct(id, updatedProduct) {
+        let products = await this.getProducts();
+        let productIndex = products.findIndex(p => p.id == id);
+        products[productIndex] = {...products[productIndex], ...updatedProduct};
+        await fs.promises.writeFile(this.path, JSON.stringify(this.products));
+    }  
 }
-/*
 //testing 
 
-const productManager = new ProductManager();
-let products = productManager.getProducts();
-console.log(products);
-productManager.addProduct('producto prueba', 'Este es un producto prueba', 200, 'sin imagen', 'abc123', 25);
+(async function main() {
+    try {
+        const productManager = new ProductManager('./productos.txt'); 
+        productManager.addProduct('producto prueba', 'Este es un producto prueba', 200, 'sin imagen', 'abc123', 25);
+        productManager.addProduct('producto prueba', 'Este es un producto prueba', 200, 'sin imagen', '2222', 25);
+        let resultProducts = await productManager.getProducts();
+        console.log(resultProducts);
+        console.log( await productManager.getProductById(1));
+
+        productManager.getProductById(5);
+        await productManager.updateProduct(2, {price:50});
+        console.log( await productManager.getProductById(2));
+
+
+    } catch (err) {
+        console.error(err);
+    }
+})();
+
+/*productManager.addProduct('producto prueba', 'Este es un producto prueba', 200, 'sin imagen', 'abc123', 25);
 products = productManager.getProducts();
 console.log(products);
-
-productManager.addProduct('producto prueba', 'Este es un producto prueba', 200, 'sin imagen', 'abc123', 25);
 
 productManager.addProduct('producto prueba2', 'Este es un producto prueba', 200, 'sin imagen', 'def456', 25);
 
 productManager.addProduct('producto prueba3', 'Este es un producto prueba', 200, 'sin imagen', 'hij678', 25)
 
-console.log(productManager.getProductById(1));
-console.log(productManager.getProductById(5));
+
 productManager.getProducts();
 console.log(products);
 
